@@ -1,76 +1,72 @@
 import yfinance as yf
 import pandas as pd
 import json
-import os
 
-# 1. Configuration
-tickers = ['NOVN.SW', 'JFN.SW', 'RO.SW', 'CFR.SW']
-weights_map = {
-    'NOVN.SW': 0.30,
-    'JFN.SW': 0.30,
-    'RO.SW': 0.20,
-    'CFR.SW': 0.20
+# 1. Configuration: Define the specific portfolio
+# We use the specific quantities and trade prices provided to establish the base.
+portfolio = {
+    'CFR.SW':  {'qty': 15, 'trade_price': 172.35},
+    'JFN.SW':  {'qty': 15, 'trade_price': 259.00},
+    'NOVN.SW': {'qty': 36, 'trade_price': 104.38},
+    'ABBN.SW': {'qty': 45, 'trade_price': 57.58}  # Replaced RO with ABBN
 }
 
-# 2. Date Setup
-start_date_str = '2020-11-01'
-index_100_date = pd.to_datetime('2020-11-02')
-base_value = 100
+tickers = list(portfolio.keys())
 
-# 3. Fetch Data
-print(f"Downloading data...")
+# 2. Calculate the "Base Divisor"
+# This calculates the total value of the portfolio at the moment the trade prices were set.
+# This total value represents Index 100.
+base_portfolio_value = sum(item['qty'] * item['trade_price'] for item in portfolio.values())
+print(f"Base Portfolio Value (Index 100): {base_portfolio_value:.2f} CHF")
+
+# 3. Date Setup
+# We download data starting from 2020 to ensure we have history,
+# but the math is now anchored to the trade prices provided above.
+start_date_str = '2020-11-01'
+
+# 4. Fetch Data
+print(f"Downloading data for: {tickers}...")
 data = yf.download(tickers, start=start_date_str, progress=False)['Close']
 
-# 4. Locate Start Date
-if start_date_str not in data.index:
-    actual_start_date = data.index[data.index > start_date_str][0]
-else:
-    actual_start_date = pd.Timestamp(start_date_str)
+# Handle cases where data might have NaNs (fill forward or drop)
+data = data.ffill().dropna()
 
-data = data.loc[actual_start_date:].copy()
-
-# 5. Calculate Fixed Shares
-initial_prices = data.loc[index_100_date].copy()
-fixed_shares = {}
+# 5. Build Index
+# Calculate the daily value of the portfolio using the fixed quantities
+data['Portfolio_Value'] = 0.0
 
 for ticker in tickers:
-    weight = weights_map[ticker]
-    start_price = initial_prices[ticker]
-    allocated_capital = base_value * weight
-    fixed_shares[ticker] = allocated_capital / start_price
+    qty = portfolio[ticker]['qty']
+    data['Portfolio_Value'] += data[ticker] * qty
 
-# 6. Build Index
-data['Swiss_Custom_Index'] = 0.0
-for ticker in tickers:
-    data['Swiss_Custom_Index'] += data[ticker] * fixed_shares[ticker]
+# Normalize to Index 100 based on the calculated base value
+data['Swiss_Custom_Index'] = (data['Portfolio_Value'] / base_portfolio_value) * 100
 
-# 7. Prepare JSON Output
-# We want the latest value, plus perhaps the last 30 days of history for charts
+# 6. Prepare JSON Output
 latest_date = data.index[-1]
 latest_value = data['Swiss_Custom_Index'].iloc[-1]
 
-# Create a clean dictionary structure
 output_data = {
     "meta": {
         "name": "Swiss Custom Index",
         "last_updated": latest_date.strftime('%Y-%m-%d'),
-        "base_value": base_value,
+        "base_value": 100,
+        "base_calculation_value": round(base_portfolio_value, 2),
         "start_date": start_date_str
     },
     "latest": {
         "date": latest_date.strftime('%Y-%m-%d'),
         "value": round(latest_value, 2)
     },
-    # Convert the whole index history to a dictionary {date: value}
-    "history": data['Swiss_Custom_Index'].round(2).to_dict()
+    # Convert history to dictionary {date_string: value}
+    "history": {
+        date.strftime('%Y-%m-%d'): round(val, 2)
+        for date, val in data['Swiss_Custom_Index'].items()
+    }
 }
 
-# Fix Timestamp keys in history to be strings
-# Pandas to_dict() might leave keys as Timestamps, which JSON hates
-output_data["history"] = {k.strftime('%Y-%m-%d'): v for k, v in output_data["history"].items()}
-
-# 8. Save to file
+# 7. Save to file
 with open('index_data.json', 'w') as f:
     json.dump(output_data, f, indent=4)
 
-print("Successfully generated index_data.json")
+print(f"Successfully generated index_data.json. Latest Value: {latest_value:.2f}")
