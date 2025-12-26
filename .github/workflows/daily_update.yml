@@ -2,22 +2,20 @@ name: Update Swiss Index
 
 on:
   schedule:
-    # Runs at 22:00 UTC every day (After Swiss market close)
     - cron: '0 22 * * *'
-  workflow_dispatch: # Allows you to run it manually to test
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # IMPORTANT: Allows the bot to save the JSON file back to the repo
+      contents: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # Fetch full history (sometimes needed for git operations)
-          fetch-depth: 0 
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -27,22 +25,39 @@ jobs:
       - name: Install dependencies
         run: |
           pip install pandas yfinance
+          echo "Dependencies installed successfully."
+
+      - name: Debug - List files before run
+        run: ls -la
 
       - name: Run Index Script
-        run: python main.py
+        run: |
+          echo "Starting Python script..."
+          python main.py
+          echo "Python script finished."
+
+      - name: Debug - Check if JSON exists and show content
+        run: |
+          if [ -f index_data.json ]; then
+            echo "File index_data.json exists."
+            cat index_data.json
+          else
+            echo "ERROR: index_data.json was NOT created/found!"
+            exit 1
+          fi
 
       - name: Commit and Push JSON
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
           
-          # Force add the file in case it's new or ignored
+          # Force add the file
           git add index_data.json
           
-          # Check if there are changes to commit
-          if git diff --staged --quiet; then
-            echo "No changes to commit."
-          else
-            git commit -m "Update index data"
-            git push
-          fi
+          # Check status
+          git status
+          
+          # Commit and Push
+          timestamp=$(date -u)
+          git commit -m "Update index data: ${timestamp}" || echo "No changes to commit"
+          git push
