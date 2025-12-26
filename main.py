@@ -100,6 +100,8 @@ output_data = {
 
 # 7. Save to file
 with open('index_data.json', 'w') as f:
-    json.dump(output_data, f, indent=4)
+    #json.dump(output_data, f, indent=4)
+    f.write(output_data) # or json.dump(data, f)
+
 
 print(f"Successfully generated index_data.json. Latest Value: {latest_value:.2f}")
