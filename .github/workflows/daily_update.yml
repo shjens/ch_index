@@ -20,10 +20,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.11' # Updated to 3.11 to fix yfinance error
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install pandas yfinance
           echo "Dependencies installed successfully."
 
