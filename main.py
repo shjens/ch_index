@@ -80,6 +80,9 @@ data['Swiss_Custom_Index'] = (data['Portfolio_Value'] / base_portfolio_value) * 
 latest_date = data.index[-1]
 latest_value = data['Swiss_Custom_Index'].iloc[-1]
 
+# We apply .iloc[::-1] here to reverse the Series (Newest date first)
+reversed_history = data['Swiss_Custom_Index'].iloc[::-1]
+
 output_data = {
     "meta": {
         "name": "Swiss Custom Index",
@@ -94,7 +97,7 @@ output_data = {
     },
     "history": {
         date.strftime('%Y-%m-%d'): round(val, 2)
-        for date, val in data['Swiss_Custom_Index'].items()
+        for date, val in reversed_history.items()
     }
 }
 
