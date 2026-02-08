@@ -5,10 +5,10 @@ import sys
 
 # 1. Configuration
 portfolio = {
-    'CFR.SW':  {'qty': 15, 'trade_price': 172.35},
-    'JFN.SW':  {'qty': 15, 'trade_price': 259.00},
-    'NOVN.SW': {'qty': 36, 'trade_price': 104.38},
-    'ABBN.SW': {'qty': 45, 'trade_price': 57.58}
+    'CFR.SW':  {'qty': 9, 'trade_price': 172.35},
+    'JFN.SW':  {'qty': 9, 'trade_price': 259.00},
+    'NOVN.SW': {'qty': 22, 'trade_price': 104.38},
+    'ABBN.SW': {'qty': 27, 'trade_price': 57.58}
 }
 
 tickers = list(portfolio.keys())
@@ -89,7 +89,17 @@ output_data = {
         "last_updated": latest_date.strftime('%Y-%m-%d'),
         "base_value": 100,
         "base_calculation_value": round(base_portfolio_value, 2),
-        "start_date": start_date_str
+        "start_date": start_date_str,
+        "risk_reduction_date": "2026-02-06",
+        "new_risk_ratio": 0.6,
+        "pnl" : 1384,
+        old_risk = {
+            'CFR.SW':  {'qty': 9, 'trade_price': 172.35},
+            'JFN.SW':  {'qty': 9, 'trade_price': 259.00},
+            'NOVN.SW': {'qty': 22, 'trade_price': 104.38},
+            'ABBN.SW': {'qty': 27, 'trade_price': 57.58}
+        }
+        
     },
     "latest": {
         "date": latest_date.strftime('%Y-%m-%d'),
