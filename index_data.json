@@ -1,7 +1,7 @@
 {
     "meta": {
         "name": "Swiss Custom Index",
-        "last_updated": "2026-08-07",
+        "last_updated": "2026-08-10",
         "base_value": 100,
         "base_calculation_value": 7733.17,
         "start_date": "2020-11-01",
@@ -28,10 +28,11 @@
         }
     },
     "latest": {
-        "date": "2026-08-07",
+        "date": "2026-08-10",
         "value": 117.22
     },
     "history": {
+        "2026-08-10": 117.22,
         "2026-08-07": 117.22,
         "2026-08-06": 117.5,
         "2026-08-05": 117.12,
